@@ -1,0 +1,121 @@
+using UnityEngine;
+
+public class PlayerController : MonoBehaviour
+{
+    public float moveSpeed = 5f;
+    public float rotateSpeed = 720f;
+    public Transform cameraTransform;
+
+    private void Update()
+    {
+        Move();
+        Rotate();
+    }
+
+    private void Move()
+    {
+        float horizontal = Input.GetAxis("Horizontal");
+        float vertical = Input.GetAxis("Vertical");
+        Vector3 direction = new Vector3(horizontal, 0, vertical).normalized;
+
+        if (direction.magnitude >= 0.1f)
+        {
+            Vector3 moveDirection = cameraTransform.forward * vertical + cameraTransform.right * horizontal;
+            moveDirection.y = 0;
+            transform.Translate(moveDirection * moveSpeed * Time.deltaTime, Space.World);
+        }
+    }
+
+    private void Rotate()
+    {
+        Vector3 targetDirection = cameraTransform.forward;
+        targetDirection.y = 0;
+        Quaternion targetRotation = Quaternion.LookRotation(targetDirection);
+        transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, rotateSpeed * Time.deltaTime);
+    }
+}
+
+using UnityEngine;
+
+public class GunScript : MonoBehaviour
+{
+    public GameObject bulletPrefab;
+    public Transform firePoint;
+    public float bulletSpeed = 20f;
+
+    void Update()
+    {
+        if (Input.GetButtonDown("Fire1")) // Left Mouse Button
+        {
+            Shoot();
+        }
+    }
+
+    void Shoot()
+    {
+        GameObject bullet = Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
+        Rigidbody rb = bullet.GetComponent<Rigidbody>();
+        rb.velocity = firePoint.forward * bulletSpeed;
+    }
+}
+
+using UnityEngine;
+
+public class BulletScript : MonoBehaviour
+{
+    public float lifeTime = 2f;
+
+    void Start()
+    {
+        Destroy(gameObject, lifeTime);
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        Destroy(gameObject);
+    }
+}
+
+using UnityEngine;
+
+public class SafeZoneScript : MonoBehaviour
+{
+    public float shrinkRate = 0.1f;
+    public float minSize = 5f;
+
+    void Update()
+    {
+        if (transform.localScale.x > minSize)
+        {
+            transform.localScale -= new Vector3(shrinkRate, 0, shrinkRate) * Time.deltaTime;
+        }
+    }
+}
+
+using UnityEngine;
+
+public class Health : MonoBehaviour
+{
+    public int maxHealth = 100;
+    private int currentHealth;
+
+    void Start()
+    {
+        currentHealth = maxHealth;
+    }
+
+    public void TakeDamage(int damage)
+    {
+        currentHealth -= damage;
+        if (currentHealth <= 0)
+        {
+            Die();
+        }
+    }
+
+    void Die()
+    {
+        // Implement death logic (e.g., respawn or end game)
+        Destroy(gameObject);
+    }
+}
